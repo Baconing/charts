@@ -91,6 +91,7 @@ persistence:
     - ReadWriteOnce
   existingClaim: ""
   annotations: {}
+  labels: {}
 
 # Extra volumes (NFS for media)
 volumes: []
