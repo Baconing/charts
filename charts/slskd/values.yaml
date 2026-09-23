@@ -1,0 +1,214 @@
+# ==============================================================================
+# Global configuration
+# ==============================================================================
+global:
+  imageRegistry: ""
+  strategy:
+    type: Recreate
+
+# ==============================================================================
+# Image
+# ==============================================================================
+image:
+  registry: ghcr.io
+  repository: slskd/slskd
+  pullPolicy: IfNotPresent
+  tag: ""
+
+imagePullSecrets: []
+nameOverride: ""
+fullnameOverride: ""
+
+strategy: {}
+replicaCount: 1
+
+extraEnv: []
+extraEnvFrom: []
+
+serviceAccount:
+  create: true
+  automount: true
+  annotations: {}
+  name: ""
+
+podAnnotations: {}
+podLabels: {}
+
+podSecurityContext:
+  fsGroup: 1000
+  fsGroupChangePolicy: OnRootMismatch
+
+securityContext:
+  runAsUser: 1000
+  runAsGroup: 1000
+  runAsNonRoot: true
+
+# ==============================================================================
+# Services
+# ==============================================================================
+service:
+  type: ClusterIP
+  port: 80
+  annotations: {}
+  labels: {}
+
+p2pService:
+  enabled: true
+  type: LoadBalancer
+  port: 50300
+  annotations: {}
+  labels: {}
+
+# ==============================================================================
+# Ingress
+# ==============================================================================
+ingress:
+  enabled: false
+  ingressClassName: ""
+  annotations: {}
+  hosts:
+    - host: slskd.local
+      paths:
+        - path: /
+          pathType: Prefix
+  tls: []
+
+route:
+  enabled: false
+  parentRefs: []
+  hostnames: []
+  annotations: {}
+  labels: {}
+
+# ==============================================================================
+# Storage
+# ==============================================================================
+persistence:
+  enabled: true
+  size: 5Gi
+  storageClass: ""
+  accessModes:
+    - ReadWriteOnce
+  existingClaim: ""
+  annotations: {}
+
+# Extra volumes (NFS for media)
+volumes: []
+volumeMounts: []
+
+# ==============================================================================
+# Resources
+# ==============================================================================
+resources: {}
+nodeSelector: {}
+tolerations: []
+affinity: {}
+
+# ==============================================================================
+# Probes
+# ==============================================================================
+startupProbe:
+  httpGet:
+    path: /health
+    port: http
+  initialDelaySeconds: 5
+  periodSeconds: 5
+  timeoutSeconds: 5
+  failureThreshold: 30
+
+livenessProbe:
+  httpGet:
+    path: /health
+    port: http
+  periodSeconds: 30
+  timeoutSeconds: 10
+  failureThreshold: 3
+
+readinessProbe:
+  httpGet:
+    path: /health
+    port: http
+  periodSeconds: 10
+  timeoutSeconds: 5
+  failureThreshold: 3
+
+# ==============================================================================
+# Monitoring (ServiceMonitor / VMServiceScrape)
+# ==============================================================================
+monitoring:
+  enabled: false
+  # Type: ServiceMonitor (Prometheus) or VMServiceScrape (VictoriaMetrics)
+  type: ServiceMonitor
+  path: /metrics
+  interval: 30s
+  scrapeTimeout: 10s
+  labels: {}
+  namespace: ""
+  # Basic auth for scraping metrics endpoint
+  basicAuth:
+    enabled: false
+    # Secret with 'username' and 'password' keys
+    secretName: ""
+
+# ==============================================================================
+# Application Configuration
+# ==============================================================================
+app:
+  timezone: "UTC"                    # Pod-level TZ env var (not in slskd.yml)
+  existingSecret: ""                 # External K8s Secret reference
+
+  # Credentials — injected as env vars, NOT in ConfigMap
+  soulseek:
+    username: ""
+    password: ""
+  apiKey: ""                         # Auto-generated if empty
+
+  # Free-form slskd configuration → rendered as slskd.yml
+  # Native snake_case keys. Ref: https://github.com/slskd/slskd/blob/master/docs/config.md
+  config:
+    remote_configuration: false
+
+    soulseek:
+      listen_port: 50300
+      description: "slskd on Helm!"
+      distributed_network:
+        disabled: false
+        child_limit: 25
+
+    web:
+      port: 5030
+
+    directories:
+      incomplete: /media/downloads/slskd/incomplete
+      downloads: /media/downloads/slskd
+
+    shares:
+      directories:
+        - /media/music
+      filters:
+        - '\.ini$'
+        - 'Thumbs\.db$'
+        - '\.DS_Store$'
+        - '@eaDir'
+      cache:
+        storage_mode: memory
+        retention: 10080
+
+    transfers:
+      upload:
+        slots: 20
+        speed_limit: 1000
+      download:
+        destination:
+          permissions:
+            mode: "644"
+        slots: 500
+        speed_limit: 1000
+
+    retention:
+      transfers:
+        upload:
+          succeeded: 1440
+        download:
+          succeeded: 1440
+      search: 1440

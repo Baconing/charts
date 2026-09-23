@@ -1,0 +1,40 @@
+apiVersion: v2
+kubeVersion: ">=1.23.0-0"
+name: slskd
+description: A modern client-server application for the Soulseek file sharing network
+type: application
+version: 0.4.0
+appVersion: "0.26.0"
+maintainers:
+  - name: Baconing
+    email: iam@baconi.ng
+    url: https://baconi.ng
+  - name: AlexMorbo
+    email: alex@morbo.ru
+sources:
+  - https://github.com/baconing/charts/tree/master/charts/slskd
+  - https://github.com/alexmorbo/helm-charts/tree/master/charts/slskd
+  - https://github.com/slskd/slskd
+icon: https://raw.githubusercontent.com/slskd/slskd/refs/heads/master/etc/icon.svg
+home: https://github.com/baconing/charts
+keywords:
+  - slskd
+  - soulseek
+  - p2p
+  - music
+  - file-sharing
+annotations:
+  artifacthub.io/changes: |
+    - kind: added
+      description: Added labels field to "persistence" key in values.yaml to allow for custom labels on the PVC
+    - kind: changed
+      description: Updated app to 0.26.0 - 'permissions.file.mode' config key renamed to 'transfers.download.destination.permissions.mode'
+  artifacthub.io/license: MIT
+  artifacthub.io/links: |-
+    - name: App Source
+      url: https://github.com/slskd/slskd
+    - name: Chart Source
+      url: https://github.com/baconing/charts/tree/master/charts/slskd
+  artifacthub.io/images: |
+    - name: slskd
+      image: slskd/slskd:0.26.0
