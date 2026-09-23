@@ -24,7 +24,7 @@ jobs:
         uses: bitdeps/helm-oci-charts-releaser@v0.1.5
         with:
           charts_dir: ./charts
-          oci_registry: ghcr.io/baconing
+          oci_registry: ghcr.io/baconing/charts
           oci_username: baconing
           oci_password: ${{ secrets.GITHUB_TOKEN }}
           github_token: ${{ secrets.GITHUB_TOKEN }}
