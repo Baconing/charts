@@ -9,6 +9,7 @@ jobs:
   release:
     permissions:
       contents: write
+      packages: write
     runs-on: ubuntu-latest
     steps:
       - name: Checkout
@@ -20,8 +21,10 @@ jobs:
           git config user.name "$GITHUB_ACTOR"
           git config user.email "$GITHUB_ACTOR@users.noreply.github.com"
       - name: Run chart-releaser
-        uses: helm/chart-releaser-action@v1.7.0
-        env:
-          CR_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        uses: bitdeps/helm-oci-charts-releaser@v0.1.5
         with:
           charts_dir: ./charts
+          oci_registry: ghcr.io/baconing
+          oci_username: baconing
+          oci_password: ${{ secrets.GITHUB_TOKEN }}
+          github_token: ${{ secrets.GITHUB_TOKEN }}
