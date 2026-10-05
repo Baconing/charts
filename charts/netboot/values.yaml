@@ -1,0 +1,491 @@
+# -- The number of replicas to set for the deployment.
+replicaCount: 1
+
+# -- This is to override the chart name.
+nameOverride: ""
+fullnameOverride: ""
+
+# -- The scripts that will be exposed on the TFTP and HTTP(S) servers.
+# It's recommended to use extraFiles to add additional files to the TFTP server and only use this for iPXE scripts.
+# Files here are not saved to persistent storage (if enabled) and by default are read-only mounted.
+ipxeScripts:
+  # -- Scripts/files here will be exposed on the TFTP server.
+  tftp:
+    # -- This deploys the ConfigMap that will be used for the TFTP server's iPXE scripts/files (unless existingConfigMap is set) and mounts it to the pod.
+    enabled: true
+    # -- Supply an existing ConfigMap to use for the TFTP server's iPXE scripts/files.
+    # @default -- nil
+    existingConfigMap:
+    # -- This is the default iPXE script that will be served from the TFTP server.
+    # It's recommended to keep this script as simple as possible (aka the default) and chainload another script from the HTTP(S) server.
+    autoexec.ipxe:
+      #!ipxe
+      echo Chainloading default iPXE script from HTTP server...
+      dhcp
+      set conn_type https
+      chain --autofree https://${next-server}/default.ipxe || echo HTTPS failed... attempting HTTP...
+      set conn_type http
+      chain --autofree http://${next-server}/default.ipxe || echo HTTP failed, localbooting...
+#   additional.ipxe: |
+#     #!ipxe
+#     echo This is an additional iPXE script that is hosted on the TFTP server.
+  # -- Scripts/files here will be exposed on the HTTP(S) server.
+  http:
+    enabled: true
+    # -- This deploys the ConfigMap that will be used for the HTTP(S) server's files (unless existingConfigMap is set) and mounts it to the pod.
+    # @default -- nil
+    existingConfigMap:
+    # -- This is the default iPXE script that will be chainloaded from autoexec.ipxe on the TFTP server.
+    # @default -- nil
+    default.ipxe:
+#   additional.ipxe: |
+#     #!ipxe
+#     echo This is an additional iPXE script that is hosted on the HTTP(S) server.
+
+# -- The extra files that will be exposed on the TFTP and HTTP(S) servers.
+# This is useful for serving kernels, initramfs, and ISOs on your LAN instead of having to download them from the internet every time you want to netboot a machine.
+# Files here are saved to persistent storage (if enabled), even if the content variable is set.
+extraFiles:
+  # -- Files here will be exposed on the TFTP server.
+  tftp:
+    - name:
+      # -- (string) The content of the file. If this is set, url will be ignored.
+      content:
+      # -- (string) The URL to fetch the file from. If this is set, content will be ignored.
+      url:
+  # -- Files here will be exposed on the HTTP(S) server.
+  http:
+    - name:
+      # -- (string) The content of the file. If this is set, url will be ignored.
+      content:
+      # -- (string) The URL to fetch the file from. If this is set, content will be ignored.
+      url:
+
+# -- The URLs to fetch the iPXE binaries from.
+# Use extraFiles.tftp to serve additional iPXE binaries not listed here.
+# Files here are saved to persistent storage (if enabled).
+ipxe:
+  x86:
+    # -- Download and serve x86 iPXE binaries.
+    enabled: true
+
+    # -- Prefixes for the TFTP filenames of x86 iPXE binaries.
+    # Prevents clashing with other architectures.
+    prefix: x86-
+
+    # -- x86 iPXE binary (unloads UNDI drivers and relies on iPXE's built-in NIC drivers).
+    ipxe:
+      enabled: true
+      # -- The name of the binary served on the TFTP server.
+      name: ipxe.pxe
+      # -- The URL to fetch the x86 ipxe.pxe binary from.
+      url: http://boot.ipxe.org/ipxe.pxe
+
+    # -- x86 iPXE binary (keeps the UNDI drivers loaded)
+    undionly:
+      enabled: true
+      # -- The name of the binary served on the TFTP server.
+      name: undionly.kpxe
+      # -- The URL to fetch the x86 undionly.kpxe binary from.
+      url: http://boot.ipxe.org/undionly.kpxe
+  
+  # -- x86_64 EFI iPXE binaries.
+  x86_64-efi:
+    # -- Download and serve x86_64 EFI iPXE binaries.
+    enabled: true
+
+    # -- Prefixes for the TFTP filenames of x86_64 EFI binaries.
+    # Prevents clashing with other architectures.
+    prefix: x86_64-efi-
+
+    # -- x86_64 EFI iPXE binary (uses built-in iPXE NIC drivers).
+    ipxe:
+      enabled: true
+      # -- The name of the binary served on the TFTP server.
+      name: ipxe.efi
+      # -- The URL to fetch the x86_64 EFI ipxe.efi binary from.
+      url: http://boot.ipxe.org/x86_64-efi/ipxe.efi
+
+    # -- Legacy x86_64 EFI iPXE binary (no USB NIC drivers).
+    ipxe-legacy:
+      enabled: true
+      # -- The name of the binary served on the TFTP server.
+      name: ipxe-legacy.efi
+      # -- The URL to fetch the x86_64 EFI ipxe-legacy.efi binary from.
+      url: http://boot.ipxe.org/x86_64-efi/ipxe-legacy.efi
+
+    # -- x86_64 EFI iPXE binary with Simple Network Protocol.
+    snponly:
+      enabled: true
+      # -- The name of the binary served on the TFTP server.
+      name: snponly.efi
+      # -- The URL to fetch the x86_64 EFI snponly.efi binary from.
+      url: http://boot.ipxe.org/x86_64-efi/snponly.efi
+
+  # -- x86_64 Legacy/BIOS iPXE binaries.
+  x86_64-bios:
+    # -- Download and serve x86_64 Legacy/BIOS iPXE binaries.
+    enabled: true
+
+    # -- Prefixes for the TFTP filenames of x86_64 Legacy/BIOS binaries.
+    # Prevents clashing with other architectures.
+    prefix: x86_64-bios-
+
+    # -- x86_64 Legacy/BIOS iPXE binary (unloads UNDI drivers and relies on iPXE's built-in NIC drivers).
+    ipxe:
+      enabled: true
+      # -- The name of the binary served on the TFTP server.
+      name: ipxe.pxe
+      # -- The URL to fetch the x86_64 Legacy/BIOS ipxe.pxe binary from.
+      url: http://boot.ipxe.org/x86_64-pcbios/ipxe.pxe
+
+    # -- Legacy x86_64 Legacy/BIOS iPXE binary (keeps the UNDI drivers loaded)
+    undionly:
+      enabled: true
+      # -- The name of the binary served on the TFTP server.
+      name: undionly.kpxe
+      # -- The URL to fetch the x86_64 Legacy/BIOS undionly.kpxe binary from.
+      url: http://boot.ipxe.org/x86_64-pcbios/undionly.kpxe
+
+  # -- i386 EFI iPXE binaries.
+  i386-efi:
+    # -- Download and serve i386 EFI iPXE binaries.
+    enabled: true
+
+    # -- i386 EFI iPXE binary (uses built-in iPXE NIC drivers).
+    ipxe:
+      enabled: true
+      # -- The name of the binary served on the TFTP server.
+      name: ipxe.efi
+      # -- The URL to fetch the i386 EFI ipxe.efi binary from.
+      url: http://boot.ipxe.org/i386-efi/ipxe.efi
+
+    # -- Legacy i386 EFI iPXE binary (no USB NIC drivers).
+    ipxe-legacy:
+      enabled: true
+      # -- The name of the binary served on the TFTP server.
+      name: ipxe-legacy.efi
+      # -- The URL to fetch the i386 EFI ipxe-legacy.efi binary from.
+      url: http://boot.ipxe.org/i386-efi/ipxe-legacy.efi
+
+    # -- i386 EFI iPXE binary with Simple Network Protocol.
+    snponly:
+      enabled: true
+      # -- The name of the binary served on the TFTP server.
+      name: snponly.efi
+      # -- The URL to fetch the i386 EFI snponly.efi binary from.
+      url: http://boot.ipxe.org/i386-efi/snponly.efi
+
+  # -- ARM64 EFI iPXE binaries.
+  arm64-efi:
+    # -- Download and serve ARM64 EFI iPXE binaries.
+    enabled: true
+
+    # -- ARM64 EFI iPXE binary (uses built-in iPXE NIC drivers).
+    ipxe:
+      enabled: true
+      # -- The name of the binary served on the TFTP server.
+      name: ipxe.efi
+      # -- The URL to fetch the ARM64 EFI ipxe.efi binary from.
+      url: http://boot.ipxe.org/arm64-efi/ipxe.efi
+
+    # -- Legacy ARM64 EFI iPXE binary (no USB NIC drivers).
+    ipxe-legacy:
+      enabled: true
+      # -- The name of the binary served on the TFTP server.
+      name: ipxe-legacy.efi
+      # -- The URL to fetch the ARM64 EFI ipxe-legacy.efi binary from.
+      url: http://boot.ipxe.org/arm64-efi/ipxe-legacy.efi
+
+    # -- ARM64 EFI iPXE binary with Simple Network Protocol.
+    snponly:
+      enabled: true
+      # -- The name of the binary served on the TFTP server.
+      name: snponly.efi
+      # -- The URL to fetch the ARM64 EFI snponly.efi binary from.
+      url: http://boot.ipxe.org/arm64-efi/snponly.efi
+
+  # -- ARM32 EFI iPXE binaries.
+  arm32-efi:
+    # -- Download and serve ARM32 EFI iPXE binaries.
+    enabled: true
+
+    # -- ARM32 EFI iPXE binary (uses built-in iPXE NIC drivers).
+    ipxe:
+      enabled: true
+      # -- The name of the binary served on the TFTP server.
+      name: ipxe.efi
+      # -- The URL to fetch the ARM32 EFI ipxe.efi binary from.
+      url: http://boot.ipxe.org/arm32-efi/ipxe.efi
+
+    # -- Legacy ARM32 EFI iPXE binary (no USB NIC drivers).
+    ipxe-legacy:
+      enabled: true
+      # -- The name of the binary served on the TFTP server.
+      name: ipxe-legacy.efi
+      # -- The URL to fetch the ARM32 EFI ipxe-legacy.efi binary from.
+      url: http://boot.ipxe.org/arm32-efi/ipxe-legacy.efi
+
+    # -- ARM32 EFI iPXE binary with Simple Network Protocol.
+    snponly:
+      enabled: true
+      # -- The name of the binary served on the TFTP server.
+      name: snponly.efi
+      # -- The URL to fetch the ARM32 EFI snponly.efi binary from.
+      url: http://boot.ipxe.org/arm32-efi/snponly.efi
+
+  # -- RISC-V 64-bit EFI iPXE binaries.
+  riscv64-efi:
+    # -- Download and serve RISC-V 64-bit EFI iPXE binaries.
+    enabled: true
+
+    # -- RISC-V 64-bit EFI iPXE binary (uses built-in iPXE NIC drivers).
+    ipxe:
+      enabled: true
+      # -- The name of the binary served on the TFTP server.
+      name: ipxe.efi
+      # -- The URL to fetch the RISC-V 64-bit EFI ipxe.efi binary from.
+      url: http://boot.ipxe.org/riscv64-efi/ipxe.efi
+
+    # -- Legacy RISC-V 64-bit EFI iPXE binary (no USB NIC drivers).
+    ipxe-legacy:
+      enabled: true
+      # -- The name of the binary served on the TFTP server.
+      name: ipxe-legacy.efi
+      # -- The URL to fetch the RISC-V 64-bit EFI ipxe-legacy.efi binary from.
+      url: http://boot.ipxe.org/riscv64-efi/ipxe-legacy.efi
+
+    # -- RISC-V 64-bit EFI iPXE binary with Simple Network Protocol.
+    snponly:
+      enabled: true
+      # -- The name of the binary served on the TFTP server.
+      name: snponly.efi
+      # -- The URL to fetch the RISC-V 64-bit EFI snponly.efi binary from.
+      url: http://boot.ipxe.org/riscv64-efi/snponly.efi
+
+  # -- RISC-V 32-bit EFI iPXE binaries.
+  riscv32-efi:
+    # -- Download and serve RISC-V 32-bit EFI iPXE binaries.
+    enabled: true
+
+    # -- RISC-V 32-bit EFI iPXE binary (uses built-in iPXE NIC drivers).
+    ipxe:
+      enabled: true
+      # -- The name of the binary served on the TFTP server.
+      name: ipxe.efi
+      # -- The URL to fetch the RISC-V 32-bit EFI ipxe.efi
+      url: http://boot.ipxe.org/riscv32-efi/ipxe.efi
+
+    # -- Legacy RISC-V 32-bit EFI iPXE binary (no USB NIC drivers).
+    ipxe-legacy:
+      enabled: true
+      # -- The name of the binary served on the TFTP server.
+      name: ipxe-legacy.efi
+      # -- The URL to fetch the RISC-V 32-bit EFI ipxe-legacy.efi binary from.
+      url: http://boot.ipxe.org/riscv32-efi/ipxe-legacy.efi
+
+    # -- RISC-V 32-bit EFI iPXE binary with Simple Network Protocol.
+    snponly:
+      enabled: true
+      # -- The name of the binary served on the TFTP server.
+      name: snponly.efi
+      # -- The URL to fetch the RISC-V 32-bit EFI snponly.efi binary from.
+      url: http://boot.ipxe.org/riscv32-efi/snponly.efi
+
+  # -- LoongArch64 EFI iPXE binaries.
+  loongarch64-efi:
+    # -- Download and serve LoongArch64 EFI iPXE binaries.
+    enabled: true
+
+    # -- LoongArch64 EFI iPXE binary (uses built-in iPXE NIC drivers).
+    ipxe:
+      enabled: true
+      # -- The name of the binary served on the TFTP server.
+      name: ipxe.efi
+      # -- The URL to fetch the LoongArch64 EFI ipxe.efi binary from.
+      url: http://boot.ipxe.org/loongarch64-efi/ipxe.efi
+
+    # -- Legacy LoongArch64 EFI iPXE binary (no USB NIC drivers).
+    ipxe-legacy:
+      enabled: true
+      # -- The name of the binary served on the TFTP server.
+      name: ipxe-legacy.efi
+      # -- The URL to fetch the LoongArch64 EFI ipxe-legacy.efi binary from.
+      url: http://boot.ipxe.org/loongarch64-efi/ipxe-legacy.efi
+
+    # -- LoongArch64 EFI iPXE binary with Simple Network Protocol.
+    snponly:
+      enabled: true
+      # -- The name of the binary served on the TFTP server.
+      name: snponly.efi
+      # -- The URL to fetch the LoongArch64 EFI snponly.efi binary from.
+      url: http://boot.ipxe.org/loongarch64-efi/snponly.efi
+
+  # -- LoongArch32 EFI iPXE binaries.
+  loongarch32-efi:
+    # -- Download and serve LoongArch32 EFI iPXE binaries.
+    enabled: true
+
+    # -- LoongArch32 EFI iPXE binary (uses built-in iPXE NIC drivers).
+    ipxe:
+      enabled: true
+      # -- The name of the binary served on the TFTP server.
+      name: ipxe.efi
+      # -- The URL to fetch the LoongArch32 EFI ipxe.efi binary from.
+      url: http://boot.ipxe.org/loongarch32-efi/ipxe.efi
+
+    # -- Legacy LoongArch32 EFI iPXE binary (no USB NIC drivers).
+    ipxe-legacy:
+      enabled: true
+      # -- The name of the binary served on the TFTP server.
+      name: ipxe-legacy.efi
+      # -- The URL to fetch the LoongArch32 EFI ipxe-legacy.efi
+      url: http://boot.ipxe.org/loongarch32-efi/ipxe-legacy.efi
+
+    # -- LoongArch32 EFI iPXE binary with Simple Network Protocol.
+    snponly:
+      enabled: true
+      # -- The name of the binary served on the TFTP server.
+      name: snponly.efi
+      # -- The URL to fetch the LoongArch32 EFI snponly.efi binary from.
+      url: http://boot.ipxe.org/loongarch32-efi/snponly.efi
+
+service:
+  # -- The TFTP server service configuration.
+  tftp:
+    enabled: true
+    type: ClusterIP
+    ports:
+      tftp:
+        port: 69
+        targetPort: 6969
+    # -- This is recommended to be set to Local to ensure that the TFTP server can properly 
+    externalTrafficPolicy: Local
+    clusterIP:
+    loadBalancerIP:
+    nodePort:
+    externalIPs:
+    ipFamilyPolicy:
+    ipFamilies:
+    loadBalancerSourceRanges: []
+    annotations: {}
+    labels: {}
+    loadBalancerClass:
+    extraPorts: []
+  # -- The HTTP(S) server service configuration.
+  http:
+    enabled: true
+    type: ClusterIP
+    ports:
+      http:
+        port: 80
+        targetPort: 8080
+      https:
+        port: 443
+        targetPort: 4443
+    clusterIP:
+    loadBalancerIP:
+    nodePort:
+    externalTrafficPolicy:
+    externalIPs:
+    ipFamilyPolicy:
+    ipFamilies:
+    loadBalancerSourceRanges: []
+    annotations: {}
+    labels: {}
+    loadBalancerClass:
+
+storage:
+  dataVolume:
+    # -- The type of storage to use for the TFTP and HTTP(S) servers.
+    # pvc is recommended to prevent redownloading files from the internet every time the pod is restarted.
+    type: pvc
+    enabled: false
+    accessModes: 
+      - ReadWriteMany
+    size: 1Gi
+    storageClass:
+    labels: {}
+    annotations: {}
+  mounts:
+    initContainers:
+      initIPXE:
+        dataVolume:
+          enabled: true
+          path: /data/ipxe
+          subPath: /ipxe
+          readOnly: false
+      initExtraFiles:
+        dataVolume:
+          enabled: true
+          path: /data/assets
+          subPath: /assets
+          readOnly: false
+    containers:
+      tftp:
+        dataVolume:
+          enabled: true
+          path: /data
+          readOnly: true
+        tftpScriptsConfig:
+          enabled: true
+          path: /scripts
+          readOnly: true
+      http:
+        dataVolume:
+          enabled: true
+          path: /data
+          readOnly: true
+        httpScriptsConfig:
+          enabled: true
+          path: /scripts
+          readOnly: true
+#     sidecar:
+#       dataVolume:
+#         enabled: true
+
+nodeSelector: {}
+
+tolerations: []
+
+affinity: {}
+
+podAnnotations: {}
+podLabels: {}
+
+podSecurityContext:
+  fsGroup: 2000
+
+securityContext:
+  capabilities:
+    drop:
+    - ALL
+  readOnlyRootFilesystem: true
+  runAsNonRoot: true
+  runAsUser: 1000
+
+resources: {}
+
+livenessProbe:
+  httpGet:
+    path: /
+    port: http
+readinessProbe:
+  httpGet:
+    path: /
+    port: http
+
+autoscaling:
+  enabled: false
+  minReplicas: 1
+  maxReplicas: 100
+  targetCPUUtilizationPercentage: 80
+  # targetMemoryUtilizationPercentage: 80
+
+extraContainers: []
+extraInitContainers: []
+
+extraVolumes: []
+extraTFTPVolumeMounts: []
+extraHTTPVolumeMounts: []
+extraInitVolumeMounts: []
