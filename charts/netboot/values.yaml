@@ -53,6 +53,10 @@ extraFiles:
       content:
       # -- (string) The URL to fetch the file from. If this is set, content will be ignored.
       url:
+      # -- (string) The URL to the checksum file for the file. If this is set, the checksum will be verified before serving the file.
+      # If the file doesn't match the checksum, it will be re-downloaded from the url. Otherwise, it will not be served.
+      # If the file doesn't match the checksum right after a download, it will not be served or saved.
+      checksumUrl:
   # -- Files here will be exposed on the HTTP(S) server.
   http:
     - name:
@@ -60,6 +64,10 @@ extraFiles:
       content:
       # -- (string) The URL to fetch the file from. If this is set, content will be ignored.
       url:
+      # -- (string) The URL to the checksum file for the file. If this is set, the checksum will be verified before serving the file.
+      # If the file doesn't match the checksum, it will be re-downloaded from the url. Otherwise, it will not be served.
+      # If the file doesn't match the checksum right after a download, it will not be served or saved.
+      checksumUrl:
 
 # -- The URLs to fetch the iPXE binaries from.
 # Use extraFiles.tftp to serve additional iPXE binaries not listed here.
@@ -409,13 +417,13 @@ storage:
     annotations: {}
   mounts:
     initContainers:
-      initIPXE:
+      init-ipxe:
         dataVolume:
           enabled: true
           path: /data/ipxe
           subPath: /ipxe
           readOnly: false
-      initExtraFiles:
+      init-extrafiles:
         dataVolume:
           enabled: true
           path: /data/assets

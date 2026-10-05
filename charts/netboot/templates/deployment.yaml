@@ -5,65 +5,166 @@ metadata:
   labels:
     {{- include "netboot.labels" . | nindent 4 }}
 spec:
-  {{- if not .Values.autoscaling.enabled }}
   replicas: {{ .Values.replicaCount }}
-  {{- end }}
   selector:
     matchLabels:
-      {{- include "netboot.selectorLabels" . | nindent 6 }}
+      {{- include "netboot.selectorLabels" . | nindent 4 }}
   template:
     metadata:
-      {{- with .Values.podAnnotations }}
       annotations:
+        {{- with .Values.podAnnotations }}
         {{- toYaml . | nindent 8 }}
-      {{- end }}
+        {{- end }}
       labels:
-        {{- include "netboot.labels" . | nindent 8 }}
+        {{- include "netboot.selectorLabels" . | nindent 8 }}
         {{- with .Values.podLabels }}
         {{- toYaml . | nindent 8 }}
         {{- end }}
     spec:
-      {{- with .Values.imagePullSecrets }}
-      imagePullSecrets:
-        {{- toYaml . | nindent 8 }}
-      {{- end }}
-      serviceAccountName: {{ include "netboot.serviceAccountName" . }}
       {{- with .Values.podSecurityContext }}
       securityContext:
         {{- toYaml . | nindent 8 }}
       {{- end }}
-      containers:
-        - name: {{ .Chart.Name }}
-          {{- with .Values.securityContext }}
-          securityContext:
+      initContainers:
+        - name: init-ipxe
+          image: curlimages/curl:latest
+          command:
+            - /bin/sh
+            - -c
+            - |
+              echo "Starting iPXE binary sync..."
+              mkdir -p /data/ipxe
+              {{- range $arch, $archCfg := .Values.ipxe }}
+              {{- if and (kindIs "map" $archCfg) $archCfg.enabled }}
+              echo "Processing arch: {{ $arch }}..."
+              {{- $prefix := default "" $archCfg.prefix }}
+              {{- range $binKey, $binCfg := omit $archCfg "enabled" "prefix" }}
+              {{- if and (kindIs "map" $binCfg) $binCfg.enabled }}
+              echo "Downloading {{ $prefix }}{{ $binCfg.name }} from {{ $binCfg.url }}"
+              curl -sL --retry 3 -o /data/ipxe/{{ $prefix }}{{ $binCfg.name }} {{ $binCfg.url }}
+              {{- end }}
+              {{- end }}
+              {{- end }}
+              {{- end }}
+              echo "Done."
+          volumeMounts:
+            {{- range $key, $val := .Values.storage.mounts.initContainers.init-ipxe }}
+            {{- if $val.enabled }}
+            - name: {{ $key }}
+              mountPath: {{ $val.path }}
+              {{- if $val.subPath }}
+              subPath: {{ $val.subPath }}
+              {{- end }}
+              readOnly: {{ $val.readOnly }}
+            {{- end }}
+            {{- end }}
+            {{- with .Values.extraInitVolumeMounts }}
             {{- toYaml . | nindent 12 }}
-          {{- end }}
-          image: "{{ .Values.image.repository }}:{{ .Values.image.tag | default .Chart.AppVersion }}"
-          imagePullPolicy: {{ .Values.image.pullPolicy }}
+            {{- end }}
+
+        - name: init-extrafiles
+          image: curlimages/curl:latest
+          command:
+            - /bin/sh
+            - -c
+            - |
+              echo "Starting extra files sync..."
+              mkdir -p /data/assets/tftp /data/assets/http
+              # Logic to loop over values.extraFiles goes here...
+              echo "Done."
+          volumeMounts:
+            {{- range $key, $val := .Values.storage.mounts.initContainers.init-extrafiles }}
+            {{- if $val.enabled }}
+            - name: {{ $key }}
+              mountPath: {{ $val.path }}
+              {{- if $val.subPath }}
+              subPath: {{ $val.subPath }}
+              {{- end }}
+              readOnly: {{ $val.readOnly }}
+            {{- end }}
+            {{- end }}
+            {{- with .Values.extraInitVolumeMounts }}
+            {{- toYaml . | nindent 12 }}
+            {{- end }}
+
+        {{- with .Values.extraInitContainers }}
+        {{- toYaml . | nindent 8 }}
+        {{- end }}
+
+      containers:
+        # -- TFTP Server Container
+        - name: tftp
+          image: alpine:latest  # Replace with actual tftp image (e.g., macpine/tftpd)
+          command: ["in.tftpd", "-L", "-s", "/data"]
+          ports:
+            - name: tftp
+              containerPort: {{ .Values.service.tftp.ports.tftp.targetPort }}
+              protocol: UDP
+          volumeMounts:
+            {{- range $key, $val := .Values.storage.mounts.containers.tftp }}
+            {{- if $val.enabled }}
+            - name: {{ $key }}
+              mountPath: {{ $val.path }}
+              {{- if $val.subPath }}
+              subPath: {{ $val.subPath }}
+              {{- end }}
+              readOnly: {{ $val.readOnly }}
+            {{- end }}
+            {{- end }}
+            {{- with .Values.extraTFTPVolumeMounts }}
+            {{- toYaml . | nindent 12 }}
+            {{- end }}
+
+        # -- HTTP Server Container
+        - name: http
+          image: nginx:alpine   # Replace with actual http image
           ports:
             - name: http
-              containerPort: {{ .Values.service.port }}
+              containerPort: {{ .Values.service.http.ports.http.targetPort }}
               protocol: TCP
-          {{- with .Values.livenessProbe }}
-          livenessProbe:
-            {{- toYaml . | nindent 12 }}
-          {{- end }}
-          {{- with .Values.readinessProbe }}
-          readinessProbe:
-            {{- toYaml . | nindent 12 }}
-          {{- end }}
-          {{- with .Values.resources }}
-          resources:
-            {{- toYaml . | nindent 12 }}
-          {{- end }}
-          {{- with .Values.volumeMounts }}
+            - name: https
+              containerPort: {{ .Values.service.http.ports.https.targetPort }}
+              protocol: TCP
           volumeMounts:
+            {{- range $key, $val := .Values.storage.mounts.containers.http }}
+            {{- if $val.enabled }}
+            - name: {{ $key }}
+              mountPath: {{ $val.path }}
+              {{- if $val.subPath }}
+              subPath: {{ $val.subPath }}
+              {{- end }}
+              readOnly: {{ $val.readOnly }}
+            {{- end }}
+            {{- end }}
+            {{- with .Values.extraHTTPVolumeMounts }}
             {{- toYaml . | nindent 12 }}
-          {{- end }}
-      {{- with .Values.volumes }}
-      volumes:
+            {{- end }}
+
+        {{- with .Values.extraContainers }}
         {{- toYaml . | nindent 8 }}
-      {{- end }}
+        {{- end }}
+
+      volumes:
+        - name: dataVolume
+          {{- if and .Values.storage.dataVolume.enabled (eq .Values.storage.dataVolume.type "pvc") }}
+          persistentVolumeClaim:
+            claimName: {{ include "netboot.fullname" . }}-data
+          {{- else }}
+          emptyDir: {}
+          {{- end }}
+        
+        - name: tftpScriptsConfig
+          configMap:
+            name: {{ default (printf "%s-tftp-scripts" (include "netboot.fullname" .)) .Values.ipxeScripts.tftp.existingConfigMap }}
+            
+        - name: httpScriptsConfig
+          configMap:
+            name: {{ default (printf "%s-http-scripts" (include "netboot.fullname" .)) .Values.ipxeScripts.http.existingConfigMap }}
+
+        {{- with .Values.extraVolumes }}
+        {{- toYaml . | nindent 8 }}
+        {{- end }}
+
       {{- with .Values.nodeSelector }}
       nodeSelector:
         {{- toYaml . | nindent 8 }}

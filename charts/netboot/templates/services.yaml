@@ -1,0 +1,61 @@
+{{- if .Values.service.tftp.enabled }}
+apiVersion: v1
+kind: Service
+metadata:
+  name: {{ include "netboot.fullname" . }}-tftp
+  labels:
+    {{- include "netboot.labels" . | nindent 4 }}
+    {{- with .Values.service.tftp.labels }}
+    {{- toYaml . | nindent 4 }}
+    {{- end }}
+  {{- with .Values.service.tftp.annotations }}
+  annotations:
+    {{- toYaml . | nindent 4 }}
+  {{- end }}
+spec:
+  type: {{ .Values.service.tftp.type }}
+  {{- if .Values.service.tftp.clusterIP }}
+  clusterIP: {{ .Values.service.tftp.clusterIP }}
+  {{- end }}
+  {{- if .Values.service.tftp.externalTrafficPolicy }}
+  externalTrafficPolicy: {{ .Values.service.tftp.externalTrafficPolicy }}
+  {{- end }}
+  ports:
+    - port: {{ .Values.service.tftp.ports.tftp.port }}
+      targetPort: {{ .Values.service.tftp.ports.tftp.targetPort }}
+      protocol: UDP
+      name: tftp
+      {{- if .Values.service.tftp.nodePort }}
+      nodePort: {{ .Values.service.tftp.nodePort }}
+      {{- end }}
+    {{- range .Values.service.tftp.extraPorts }}
+    - {{ . | toYaml | nindent 6 }}
+    {{- end }}
+  selector:
+    {{- include "netboot.selectorLabels" . | nindent 4 }}
+{{- end }}
+---
+{{- if .Values.service.http.enabled }}
+apiVersion: v1
+kind: Service
+metadata:
+  name: {{ include "netboot.fullname" . }}-http
+  labels:
+    {{- include "netboot.labels" . | nindent 4 }}
+    {{- with .Values.service.http.labels }}
+    {{- toYaml . | nindent 4 }}
+    {{- end }}
+spec:
+  type: {{ .Values.service.http.type }}
+  ports:
+    - port: {{ .Values.service.http.ports.http.port }}
+      targetPort: {{ .Values.service.http.ports.http.targetPort }}
+      protocol: TCP
+      name: http
+    - port: {{ .Values.service.http.ports.https.port }}
+      targetPort: {{ .Values.service.http.ports.https.targetPort }}
+      protocol: TCP
+      name: https
+  selector:
+    {{- include "netboot.selectorLabels" . | nindent 4 }}
+{{- end }}
