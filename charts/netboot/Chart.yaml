@@ -2,7 +2,7 @@ apiVersion: v2
 name: netboot
 description: A custom, high availability (soon), declarative netbooting solution.
 type: application
-version: 1.0.0
+version: 1.0.0-alpha-2026.10
 maintainers:
   - name: Brenden (Baconing) Freier 
     email: iam@baconi.ng

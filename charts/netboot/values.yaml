@@ -5,7 +5,7 @@ replicaCount: 1
 nameOverride: ""
 fullnameOverride: ""
 
-# -- The scripts that will be exposed on the TFTP and HTTP(S) servers.
+# -- The scripts that will be exposed on the TFTP and HTTP servers.
 # It's recommended to use extraFiles to add additional files to the TFTP server and only use this for iPXE scripts.
 # Files here are not saved to persistent storage (if enabled) and by default are read-only mounted.
 ipxeScripts:
@@ -17,22 +17,20 @@ ipxeScripts:
     # @default -- nil
     existingConfigMap:
     # -- This is the default iPXE script that will be served from the TFTP server.
-    # It's recommended to keep this script as simple as possible (aka the default) and chainload another script from the HTTP(S) server.
+    # It's recommended to keep this script as simple as possible (aka the default) and chainload another script from the HTTP server.
     autoexec.ipxe:
       #!ipxe
       echo Chainloading default iPXE script from HTTP server...
       dhcp
-      set conn_type https
-      chain --autofree https://${next-server}/default.ipxe || echo HTTPS failed... attempting HTTP...
       set conn_type http
-      chain --autofree http://${next-server}/default.ipxe || echo HTTP failed, localbooting...
+      chain --autofree http://${next-server}/scripts/default.ipxe || echo HTTP failed, localbooting...
 #   additional.ipxe: |
 #     #!ipxe
 #     echo This is an additional iPXE script that is hosted on the TFTP server.
-  # -- Scripts/files here will be exposed on the HTTP(S) server.
+  # -- Scripts/files here will be exposed on the HTTP server.
   http:
     enabled: true
-    # -- This deploys the ConfigMap that will be used for the HTTP(S) server's files (unless existingConfigMap is set) and mounts it to the pod.
+    # -- This deploys the ConfigMap that will be used for the HTTP server's files (unless existingConfigMap is set) and mounts it to the pod.
     # @default -- nil
     existingConfigMap:
     # -- This is the default iPXE script that will be chainloaded from autoexec.ipxe on the TFTP server.
@@ -40,9 +38,9 @@ ipxeScripts:
     default.ipxe:
 #   additional.ipxe: |
 #     #!ipxe
-#     echo This is an additional iPXE script that is hosted on the HTTP(S) server.
+#     echo This is an additional iPXE script that is hosted on the HTTP server.
 
-# -- The extra files that will be exposed on the TFTP and HTTP(S) servers.
+# -- The extra files that will be exposed on the TFTP and HTTP servers.
 # This is useful for serving kernels, initramfs, and ISOs on your LAN instead of having to download them from the internet every time you want to netboot a machine.
 # Files here are saved to persistent storage (if enabled), even if the content variable is set.
 extraFiles:
@@ -57,7 +55,7 @@ extraFiles:
       # If the file doesn't match the checksum, it will be re-downloaded from the url. Otherwise, it will not be served.
       # If the file doesn't match the checksum right after a download, it will not be served or saved.
       checksumUrl:
-  # -- Files here will be exposed on the HTTP(S) server.
+  # -- Files here will be exposed on the HTTP server.
   http:
     - name:
       # -- (string) The content of the file. If this is set, url will be ignored.
@@ -396,9 +394,6 @@ service:
     http:
       port: 80
       targetPort: 8080
-    https:
-      port: 443
-      targetPort: 4443
   clusterIP:
   loadBalancerIP:
   nodePort:
@@ -413,7 +408,7 @@ service:
 
 storage:
   dataVolume:
-    # -- The type of storage to use for the TFTP and HTTP(S) servers.
+    # -- The type of storage to use for the TFTP and HTTP servers.
     # pvc is recommended to prevent redownloading files from the internet every time the pod is restarted.
     type: pvc
     enabled: false
@@ -441,7 +436,8 @@ storage:
       tftp:
         dataVolume:
           enabled: true
-          path: /data
+          path: /data/assets/tftp
+          subPath: /assets/tftp
           readOnly: true
         tftpScriptsConfig:
           enabled: true
@@ -450,7 +446,8 @@ storage:
       http:
         dataVolume:
           enabled: true
-          path: /data
+          path: /data/assets/http
+          subPath: /assets/http
           readOnly: true
         httpScriptsConfig:
           enabled: true

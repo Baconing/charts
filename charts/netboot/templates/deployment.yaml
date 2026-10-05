@@ -92,10 +92,20 @@ spec:
         {{- end }}
 
       containers:
-        # -- TFTP Server Container
         - name: tftp
-          image: alpine:latest  # Replace with actual tftp image (e.g., macpine/tftpd)
-          command: ["in.tftpd", "-L", "-s", "/data"]
+          image: alpine:latest
+          command:
+            - /bin/sh
+            - -c
+            - |
+              echo "Starting TFTP server..."
+              apk add --no-cache tftp-hpa
+
+              mkdir -p /var/lib/tftpboot
+              ln -s /data/assets/tftp/* /var/lib/tftpboot/
+              ln -s /scripts/tftp/* /var/lib/tftpboot/
+
+              in.tftpd --foreground --address 0.0.0.0:{{ .Values.service.ports.tftp.targetPort }} --secure /var/lib/tftpboot
           ports:
             - name: tftp
               containerPort: {{ .Values.service.ports.tftp.targetPort }}
@@ -115,15 +125,12 @@ spec:
             {{- toYaml . | nindent 12 }}
             {{- end }}
 
-        # -- HTTP Server Container
         - name: http
-          image: nginx:alpine   # Replace with actual http image
+          image: nginx:alpine
+
           ports:
             - name: http
               containerPort: {{ .Values.service.ports.http.targetPort }}
-              protocol: TCP
-            - name: https
-              containerPort: {{ .Values.service.ports.https.targetPort }}
               protocol: TCP
           volumeMounts:
             {{- range $key, $val := .Values.storage.mounts.containers.http }}
@@ -136,6 +143,10 @@ spec:
               readOnly: {{ $val.readOnly }}
             {{- end }}
             {{- end }}
+            nginxConfig:
+              name: {{ include "netboot.fullname" . }}-nginx
+              mountPath: /etc/nginx/nginx.conf
+              subPath: nginx.conf
             {{- with .Values.extraHTTPVolumeMounts }}
             {{- toYaml . | nindent 12 }}
             {{- end }}
