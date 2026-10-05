@@ -425,13 +425,13 @@ storage:
     annotations: {}
   mounts:
     initContainers:
-      init-ipxe:
+      initiPXE:
         dataVolume:
           enabled: true
           path: /data/ipxe
           subPath: /ipxe
           readOnly: false
-      init-extrafiles:
+      initExtraFiles:
         dataVolume:
           enabled: true
           path: /data/assets

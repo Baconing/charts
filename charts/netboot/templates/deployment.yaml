@@ -48,7 +48,7 @@ spec:
               {{- end }}
               echo "Done."
           volumeMounts:
-            {{- range $key, $val := .Values.storage.mounts.initContainers.init-ipxe }}
+            {{- range $key, $val := .Values.storage.mounts.initContainers.initiPXE }}
             {{- if $val.enabled }}
             - name: {{ $key }}
               mountPath: {{ $val.path }}
@@ -73,7 +73,7 @@ spec:
               # Logic to loop over values.extraFiles goes here...
               echo "Done."
           volumeMounts:
-            {{- range $key, $val := .Values.storage.mounts.initContainers.init-extrafiles }}
+            {{- range $key, $val := .Values.storage.mounts.initContainers.initExtraFiles }}
             {{- if $val.enabled }}
             - name: {{ $key }}
               mountPath: {{ $val.path }}
@@ -98,7 +98,7 @@ spec:
           command: ["in.tftpd", "-L", "-s", "/data"]
           ports:
             - name: tftp
-              containerPort: {{ .Values.service.tftp.ports.tftp.targetPort }}
+              containerPort: {{ .Values.service.ports.tftp.targetPort }}
               protocol: UDP
           volumeMounts:
             {{- range $key, $val := .Values.storage.mounts.containers.tftp }}
@@ -120,10 +120,10 @@ spec:
           image: nginx:alpine   # Replace with actual http image
           ports:
             - name: http
-              containerPort: {{ .Values.service.http.ports.http.targetPort }}
+              containerPort: {{ .Values.service.ports.http.targetPort }}
               protocol: TCP
             - name: https
-              containerPort: {{ .Values.service.http.ports.https.targetPort }}
+              containerPort: {{ .Values.service.ports.https.targetPort }}
               protocol: TCP
           volumeMounts:
             {{- range $key, $val := .Values.storage.mounts.containers.http }}
