@@ -387,49 +387,29 @@ ipxe:
       url: http://boot.ipxe.org/loongarch32-efi/snponly.efi
 
 service:
-  # -- The TFTP server service configuration.
-  tftp:
-    enabled: true
-    type: ClusterIP
-    ports:
-      tftp:
-        port: 69
-        targetPort: 6969
-    # -- This is recommended to be set to Local to ensure that the TFTP server can properly 
-    externalTrafficPolicy: Local
-    clusterIP:
-    loadBalancerIP:
-    nodePort:
-    externalIPs:
-    ipFamilyPolicy:
-    ipFamilies:
-    loadBalancerSourceRanges: []
-    annotations: {}
-    labels: {}
-    loadBalancerClass:
-    extraPorts: []
-  # -- The HTTP(S) server service configuration.
-  http:
-    enabled: true
-    type: ClusterIP
-    ports:
-      http:
-        port: 80
-        targetPort: 8080
-      https:
-        port: 443
-        targetPort: 4443
-    clusterIP:
-    loadBalancerIP:
-    nodePort:
-    externalTrafficPolicy:
-    externalIPs:
-    ipFamilyPolicy:
-    ipFamilies:
-    loadBalancerSourceRanges: []
-    annotations: {}
-    labels: {}
-    loadBalancerClass:
+  enabled: true
+  type: ClusterIP
+  ports:
+    tftp:
+      port: 69
+      targetPort: 6969
+    http:
+      port: 80
+      targetPort: 8080
+    https:
+      port: 443
+      targetPort: 4443
+  clusterIP:
+  loadBalancerIP:
+  nodePort:
+  externalTrafficPolicy:
+  externalIPs:
+  ipFamilyPolicy:
+  ipFamilies:
+  loadBalancerSourceRanges: []
+  annotations: {}
+  labels: {}
+  loadBalancerClass:
 
 storage:
   dataVolume:
