@@ -160,6 +160,10 @@ ipxe:
     # -- Download and serve i386 EFI iPXE binaries.
     enabled: true
 
+    # -- Prefixes for the TFTP filenames of i386 EFI iPXE binaries.
+    # Prevents clashing with other architectures.
+    prefix: i386-efi-
+
     # -- i386 EFI iPXE binary (uses built-in iPXE NIC drivers).
     ipxe:
       enabled: true
@@ -188,6 +192,10 @@ ipxe:
   arm64-efi:
     # -- Download and serve ARM64 EFI iPXE binaries.
     enabled: true
+
+    # -- Prefixes for the TFTP filenames of ARM64 EFI iPXE binaries.
+    # Prevents clashing with other architectures.
+    prefix: arm64-efi-
 
     # -- ARM64 EFI iPXE binary (uses built-in iPXE NIC drivers).
     ipxe:
@@ -218,6 +226,10 @@ ipxe:
     # -- Download and serve ARM32 EFI iPXE binaries.
     enabled: true
 
+    # -- Prefixes for the TFTP filenames of ARM32 EFI iPXE binaries.
+    # Prevents clashing with other architectures.
+    prefix: arm32-efi-
+
     # -- ARM32 EFI iPXE binary (uses built-in iPXE NIC drivers).
     ipxe:
       enabled: true
@@ -246,6 +258,10 @@ ipxe:
   riscv64-efi:
     # -- Download and serve RISC-V 64-bit EFI iPXE binaries.
     enabled: true
+
+    # -- Prefixes for the TFTP filenames of RISC-V 64-bit EFI iPXE binaries.
+    # Prevents clashing with other architectures.
+    prefix: riscv64-efi-
 
     # -- RISC-V 64-bit EFI iPXE binary (uses built-in iPXE NIC drivers).
     ipxe:
@@ -276,6 +292,10 @@ ipxe:
     # -- Download and serve RISC-V 32-bit EFI iPXE binaries.
     enabled: true
 
+    # -- Prefixes for the TFTP filenames of RISC-V 32-bit EFI iPXE binaries.
+    # Prevents clashing with other architectures.
+    prefix: riscv32-efi-
+
     # -- RISC-V 32-bit EFI iPXE binary (uses built-in iPXE NIC drivers).
     ipxe:
       enabled: true
@@ -305,6 +325,10 @@ ipxe:
     # -- Download and serve LoongArch64 EFI iPXE binaries.
     enabled: true
 
+    # -- Prefixes for the TFTP filenames of LoongArch64 EFI iPXE binaries.
+    # Prevents clashing with other architectures.
+    prefix: loongarch64-efi-
+
     # -- LoongArch64 EFI iPXE binary (uses built-in iPXE NIC drivers).
     ipxe:
       enabled: true
@@ -333,6 +357,10 @@ ipxe:
   loongarch32-efi:
     # -- Download and serve LoongArch32 EFI iPXE binaries.
     enabled: true
+
+    # -- Prefixes for the TFTP filenames of LoongArch32 EFI iPXE binaries.
+    # Prevents clashing with other architectures.
+    prefix: loongarch32-efi-
 
     # -- LoongArch32 EFI iPXE binary (uses built-in iPXE NIC drivers).
     ipxe:
