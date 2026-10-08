@@ -41,7 +41,7 @@ spec:
               {{- range $binKey, $binCfg := omit $archCfg "enabled" "prefix" }}
               {{- if and (kindIs "map" $binCfg) $binCfg.enabled }}
               echo "Downloading {{ $prefix }}{{ $binCfg.name }} from {{ $binCfg.url }}"
-              curl -sL --retry 3 -o /data/ipxe/{{ $prefix }}{{ $binCfg.name }} {{ $binCfg.url }}
+              curl -szL --retry 3 -o /data/ipxe/{{ $prefix }}{{ $binCfg.name }} {{ $binCfg.url }}
               {{- end }}
               {{- end }}
               {{- end }}
@@ -127,7 +127,6 @@ spec:
 
         - name: http
           image: nginx:alpine
-
           ports:
             - name: http
               containerPort: {{ .Values.service.ports.http.targetPort }}
@@ -143,8 +142,7 @@ spec:
               readOnly: {{ $val.readOnly }}
             {{- end }}
             {{- end }}
-            nginxConfig:
-              name: {{ include "netboot.fullname" . }}-nginx
+            - name: {{ include "netboot.fullname" . }}-nginx
               mountPath: /etc/nginx/nginx.conf
               subPath: nginx.conf
             {{- with .Values.extraHTTPVolumeMounts }}
