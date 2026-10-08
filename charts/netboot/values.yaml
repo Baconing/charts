@@ -437,7 +437,7 @@ storage:
         dataVolume:
           enabled: true
           path: /data/assets/tftp
-          subPath: /assets/tftp
+          subPath: assets/tftp
           readOnly: true
         tftpScriptsConfig:
           enabled: true
@@ -447,7 +447,7 @@ storage:
         dataVolume:
           enabled: true
           path: /data/assets/http
-          subPath: /assets/http
+          subPath: assets/http
           readOnly: true
         httpScriptsConfig:
           enabled: true
