@@ -424,13 +424,13 @@ storage:
         dataVolume:
           enabled: true
           path: /data/ipxe
-          subPath: /ipxe
+          subPath: ipxe
           readOnly: false
       initExtraFiles:
         dataVolume:
           enabled: true
           path: /data/assets
-          subPath: /assets
+          subPath: assets
           readOnly: false
     containers:
       tftp:

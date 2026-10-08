@@ -199,25 +199,25 @@ A custom, high availability (soon), declarative netbooting solution.
 | storage.mounts.containers.http.dataVolume.enabled | bool | `true` |  |
 | storage.mounts.containers.http.dataVolume.path | string | `"/data/assets/http"` |  |
 | storage.mounts.containers.http.dataVolume.readOnly | bool | `true` |  |
-| storage.mounts.containers.http.dataVolume.subPath | string | `"/assets/http"` |  |
+| storage.mounts.containers.http.dataVolume.subPath | string | `"assets/http"` |  |
 | storage.mounts.containers.http.httpScriptsConfig.enabled | bool | `true` |  |
 | storage.mounts.containers.http.httpScriptsConfig.path | string | `"/scripts"` |  |
 | storage.mounts.containers.http.httpScriptsConfig.readOnly | bool | `true` |  |
 | storage.mounts.containers.tftp.dataVolume.enabled | bool | `true` |  |
 | storage.mounts.containers.tftp.dataVolume.path | string | `"/data/assets/tftp"` |  |
 | storage.mounts.containers.tftp.dataVolume.readOnly | bool | `true` |  |
-| storage.mounts.containers.tftp.dataVolume.subPath | string | `"/assets/tftp"` |  |
+| storage.mounts.containers.tftp.dataVolume.subPath | string | `"assets/tftp"` |  |
 | storage.mounts.containers.tftp.tftpScriptsConfig.enabled | bool | `true` |  |
 | storage.mounts.containers.tftp.tftpScriptsConfig.path | string | `"/scripts"` |  |
 | storage.mounts.containers.tftp.tftpScriptsConfig.readOnly | bool | `true` |  |
 | storage.mounts.initContainers.initExtraFiles.dataVolume.enabled | bool | `true` |  |
 | storage.mounts.initContainers.initExtraFiles.dataVolume.path | string | `"/data/assets"` |  |
 | storage.mounts.initContainers.initExtraFiles.dataVolume.readOnly | bool | `false` |  |
-| storage.mounts.initContainers.initExtraFiles.dataVolume.subPath | string | `"/assets"` |  |
+| storage.mounts.initContainers.initExtraFiles.dataVolume.subPath | string | `"assets"` |  |
 | storage.mounts.initContainers.initiPXE.dataVolume.enabled | bool | `true` |  |
 | storage.mounts.initContainers.initiPXE.dataVolume.path | string | `"/data/ipxe"` |  |
 | storage.mounts.initContainers.initiPXE.dataVolume.readOnly | bool | `false` |  |
-| storage.mounts.initContainers.initiPXE.dataVolume.subPath | string | `"/ipxe"` |  |
+| storage.mounts.initContainers.initiPXE.dataVolume.subPath | string | `"ipxe"` |  |
 | tolerations | list | `[]` |  |
 
 ----------------------------------------------
